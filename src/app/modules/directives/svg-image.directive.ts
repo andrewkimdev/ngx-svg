@@ -11,7 +11,7 @@ import { Image } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 @Directive({
   selector: 'svg-image'
@@ -20,14 +20,14 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
   /**
    * Globally used variables within the directive.
    */
-  private _image: Image;
+  private _image: Image | null = null;
 
   /**
    * Import variables for the image directive.
    */
   @Input() imageUrl: string; // Path to the image for SVG image.
-  @Input() x = 0; // Starting point on x axis.
-  @Input() y = 0; // Starting point on y axis.
+  @Input() x = 0; // Starting point on x-axis.
+  @Input() y = 0; // Starting point on y-axis.
   @Input() height = 100; // Height of the image.
   @Input() width = 100; // Width of the image.
   @Input() classes: string[] = []; // List of CSS classes which needs to be added.
@@ -35,10 +35,10 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
   /**
    * Output variables for the image directive.
    */
-  @Output() clickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() doubleClickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOverEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOutEvent: EventEmitter<MouseEvent> = new EventEmitter();
+  @Output() clickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() doubleClickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOverEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOutEvent: EventEmitter<Event> = new EventEmitter();
   @Output() onInitialize: EventEmitter<Image> = new EventEmitter();
 
   /**
@@ -49,7 +49,9 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
   constructor(
     private _svgContainer: SvgContainerComponent,
     private _elRef: ElementRef
-  ) { }
+  ) {
+    this.imageUrl = '';
+  }
 
   /**
    * Creates the image object within the container.
@@ -65,40 +67,41 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
    * Does all required pre-requisites before destroying the component.
    */
   ngOnDestroy(): void {
-    this._image.remove();
+    this._image?.remove();
   }
 
   /**
    * Is called when changes are made to the image object.
-   * @param changes - Angular Simple Changes object containing all of the changes.
+   * @param changes - Angular Simple Changes object containing all the changes.
    */
   ngOnChanges(changes: SimpleChanges): void {
     // Make sure we check it only when image is initialized
+    const { x, y, width, height, classes, imageUrl } = changes;
     if (this._image) {
       // Update image also in case image url has changed
-      if (changes.imageUrl && changes.imageUrl.currentValue !== changes.imageUrl.previousValue) {
+      if (imageUrl && imageUrl.currentValue !== imageUrl.previousValue) {
         // Update image properties and image itself
         this.updateImage(true);
       } else if (
-        (changes.x && changes.x.currentValue !== changes.x.previousValue) ||
-        (changes.y && changes.y.currentValue !== changes.y.previousValue) ||
-        (changes.width && changes.width.currentValue !== changes.width.previousValue) ||
-        (changes.height && changes.height.currentValue !== changes.height.previousValue)
+        (x && x.currentValue !== x.previousValue) ||
+        (y && y.currentValue !== y.previousValue) ||
+        (width && width.currentValue !== width.previousValue) ||
+        (height && height.currentValue !== height.previousValue)
       ) {
         // Update only image properties
         this.updateImage(false);
       }
 
       // Check if classes were changed
-      if (changes.classes && changes.classes.currentValue !== changes.classes.previousValue) {
+      if (classes && classes.currentValue !== classes.previousValue) {
         // Get classes that needs to be removed
-        const classesToRemove = changes.classes.previousValue.filter((previousClass: string) =>
-          !changes.classes.currentValue.some((currentClass: string) => currentClass === previousClass)
+        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
+          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
         );
 
         // Get classes that needs to be added
-        const classesToAdd = changes.classes.currentValue.filter((currentClass: string) =>
-          !changes.classes.previousValue.some((previousClass: string) => currentClass === previousClass)
+        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
+          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
         );
 
         // Add and remove classes
@@ -112,18 +115,21 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
    * @param reloadImage - Boolean indicator if image should be reloaded.
    */
   private updateImage(reloadImage: boolean): void {
+    const image = this._image;
+    if (!image) {
+      return;
+    }
     // Check if we have to update only image properties, or also image itself
     if (reloadImage) {
-      this._image
+      image
         .load(this.imageUrl) // Update image
         .size(this.width, this.height) // Update image size
         .move(this.x, this.y); // Update image position
     } else { // Update just image properties
-      this._image
+      image
         .size(this.width, this.height) // Update image size
         .move(this.x, this.y); // Update image position
     }
-
     // Let's set element in a correct position
     this.setCorrectPosition();
   }
@@ -132,15 +138,20 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
    * Create image object within the SVG container.
    */
   private createImage(): void {
-    this._image = this._svgContainer.getContainer()
+    const container = this._svgContainer.getContainer();
+    if (!container) {
+      return;
+    }
+
+    this._image = container
       .image() // Assign image object
       .load(this.imageUrl) // Load image
       .size(this.width, this.height) // Assign image size
       .move(this.x, this.y) // Assign position
-      .on('click', (evt: MouseEvent) => this.clickEvent.emit(evt)) // Assign click event
-      .on('dblclick', (evt: MouseEvent) => this.doubleClickEvent.emit(evt)) // Assign double click event
-      .on('mouseover', (evt: MouseEvent) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
-      .on('mouseout', (evt: MouseEvent) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
+      .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
+      .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
+      .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
+      .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
 
     // Let's set element in a correct position
     this.setCorrectPosition();
@@ -156,12 +167,17 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
    * Sets correct position for the element.
    */
   private setCorrectPosition() {
+    const container = this._svgContainer.getContainer();
+    const image: Image | null = this._image;
+    if (!container || !image) {
+      return;
+    }
     // Find position of an element within the parent container
     const position = Array.prototype.slice.call(this._elRef.nativeElement.parentElement.children).indexOf(this._elRef.nativeElement);
 
     // Let's update and insert element in a correct position.
-    if (this._svgContainer.getContainer().get(position) && this._image.position() !== position) {
-      this._image.insertBefore(this._svgContainer.getContainer().get(position));
+    if (container.get(position) && image?.position() !== position) {
+      image.insertBefore(container.get(position));
     }
   }
 
@@ -174,13 +190,12 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
     // First let's remove classes, that are not necessary anymore
     for (const classToRemove of classesToRemove) {
       this._image
-        .removeClass(classToRemove);
+        ?.removeClass(classToRemove);
     }
-
     // Now let's add new classes
     for (const classToAdd of classesToAdd) {
       this._image
-        .addClass(classToAdd);
+        ?.addClass(classToAdd);
     }
   }
 }
