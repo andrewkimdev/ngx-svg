@@ -1,15 +1,6 @@
 {
   "name": "ngx-svg",
   "version": "1.3.1",
-  "$schema": "./node_modules/ng-packagr/package.schema.json",
-  "ngPackage": {
-    "whitelistedNonPeerDependencies": [
-      "@svgdotjs/svg.js"
-    ],
-    "lib": {
-      "entryFile": "ngx_svg.ts"
-    }
-  },
   "description": "Angular Library for creating SVG elements.",
   "license": "MIT",
   "scripts": {
@@ -18,7 +9,7 @@
     "test:local": "ng test --watch=true --code-coverage",
     "ng:update": "ng update @angular/core @angular/cli --force",
     "lint": "ng lint",
-    "packagr": "ng-packagr -p package.json"
+    "packagr": "ng-packagr -p ng-package.json"
   },
   "repository": {
     "type": "git",
@@ -35,23 +26,22 @@
     "url": "https://github.com/vvaldersteins/ngx-svg/issues"
   },
   "homepage": "https://github.com/vvaldersteins/ngx-svg#readme",
-  "peerDependencies": {},
-  "dependencies": {
+  "allowedNonPeerDependencies": {
     "@svgdotjs/svg.js": "^3.0.16"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^12.2.18",
-    "@angular/animations": "^12.2.17",
-    "@angular/cli": "^12.2.18",
-    "@angular/common": "^12.2.17",
-    "@angular/compiler": "^12.2.17",
-    "@angular/compiler-cli": "^12.2.17",
-    "@angular/core": "^12.2.17",
-    "@angular/forms": "^12.2.17",
-    "@angular/language-service": "^12.2.17",
-    "@angular/platform-browser": "^12.2.17",
-    "@angular/platform-browser-dynamic": "^12.2.17",
-    "@angular/router": "^12.2.17",
+    "@angular-devkit/build-angular": "^13.3.11",
+    "@angular/animations": "^13.4.0",
+    "@angular/cli": "^13.3.11",
+    "@angular/common": "^13.4.0",
+    "@angular/compiler": "^13.4.0",
+    "@angular/compiler-cli": "^13.4.0",
+    "@angular/core": "^13.4.0",
+    "@angular/forms": "^13.4.0",
+    "@angular/language-service": "^13.4.0",
+    "@angular/platform-browser": "^13.4.0",
+    "@angular/platform-browser-dynamic": "^13.4.0",
+    "@angular/router": "^13.4.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "^2.0.8",
     "@types/node": "^14.14.22",
@@ -64,13 +54,13 @@
     "karma-coverage": "^2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.4",
-    "ng-packagr": "^12.2.7",
+    "ng-packagr": "^13.3.1",
     "rxjs": "^6.6.3",
     "ts-node": "^9.1.1",
     "tsickle": "^0.39.1",
-    "tslib": "^2.0.0",
+    "tslib": "^2.5.3",
     "tslint": "^6.1.3",
-    "typescript": "^4.3.5",
+    "typescript": "^4.6.4",
     "zone.js": "~0.11.4"
   }
 }
