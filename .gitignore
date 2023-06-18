@@ -6,8 +6,11 @@
 /tmp
 /out-tsc
 
-# Packager 
+# Packager
 .ng_pkg_build
+
+# Angular Cache
+.angular
 
 # dependencies
 /node_modules
