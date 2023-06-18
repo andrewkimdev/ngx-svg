@@ -251,7 +251,7 @@ describe('SVG Ellipse Directive', () => {
         fixture.detectChanges();
 
         const ellipse = html.querySelector('ellipse');
-        expect(ellipse.getAttribute('class')).toEqual(' red-fill');
+        expect(ellipse.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

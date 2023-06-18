@@ -247,7 +247,7 @@ describe('SVG Circle Directive', () => {
         fixture.detectChanges();
 
         const circle = html.querySelector('circle');
-        expect(circle.getAttribute('class')).toEqual(' red-fill');
+        expect(circle.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

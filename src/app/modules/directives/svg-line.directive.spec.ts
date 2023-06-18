@@ -255,7 +255,7 @@ describe('SVG Line Directive', () => {
         fixture.detectChanges();
 
         const line = html.querySelector('line');
-        expect(line.getAttribute('class')).toEqual(' red-fill');
+        expect(line.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

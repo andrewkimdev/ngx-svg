@@ -5,11 +5,12 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
+// @ts-ignore
+import { NgxSvgModule } from 'src/app/modules/core.module';
 
 /**
  * Import third-party libraries.
  */
-import { NgxSvgModule } from 'ngx-svg';
 
 /**
  * Import custom components.
@@ -68,7 +69,7 @@ const routes: Routes = [
   ],
   imports: [
     BrowserModule,
-    RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' }),
+    RouterModule.forRoot(routes),
     NgxSvgModule,
     FormsModule
   ],

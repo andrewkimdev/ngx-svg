@@ -271,7 +271,7 @@ describe('SVG Path Directive', () => {
         fixture.detectChanges();
 
         const path = html.querySelector('path');
-        expect(path.getAttribute('class')).toEqual(' red-fill');
+        expect(path.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

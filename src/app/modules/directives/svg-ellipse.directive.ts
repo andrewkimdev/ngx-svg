@@ -1,7 +1,7 @@
 /**
  * Import Angular libraries.
  */
-import { Directive, Input, Output, AfterViewChecked, EventEmitter, OnDestroy, OnChanges, SimpleChanges, ElementRef } from '@angular/core';
+import { Directive, Input, ElementRef } from '@angular/core';
 
 /**
  * Import third-party libraries.
@@ -12,34 +12,24 @@ import { Ellipse } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from 'app/modules/components';
-import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
+import { SvgBaseDirective } from 'app/modules/directives/svg-base.directive';
 
 @Directive({
   selector: 'svg-ellipse'
 })
-export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestroy {
+export class SvgEllipseDirective extends SvgBaseDirective {
   /**
    * Globally used variables within the directive.
    */
-  private _ellipse: Ellipse | null = null;
+  override _shape: Ellipse | null = null;
 
   /**
    * Import variables for the ellipse directive.
    */
-  @Input() height: number; // Height of the ellipse.
-  @Input() width: number; // Width of the ellipse.
-  @Input() color = '#000'; // Color of the ellipse background
   @Input() x = 0; // Starting point on x-axis.
   @Input() y = 0; // Starting point on y-axis.
-  @Input() classes: string[] = []; // List of CSS classes which needs to be added.
-  /**
-   * Output variables for the ellipse directive.
-   */
-  @Output() clickEvent: EventEmitter<Event> = new EventEmitter();
-  @Output() doubleClickEvent: EventEmitter<Event> = new EventEmitter();
-  @Output() mouseOverEvent: EventEmitter<Event> = new EventEmitter();
-  @Output() mouseOutEvent: EventEmitter<Event> = new EventEmitter();
-  @Output() onInitialize: EventEmitter<Ellipse> = new EventEmitter();
+  @Input() height = 0; // Height of the ellipse.
+  @Input() width = 0; // Width of the ellipse.
 
   /**
    * Create SVG Ellipse directive.
@@ -47,122 +37,47 @@ export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestr
    * @param _elRef - Angular element reference object instance.
    */
   constructor(
-    private _svgContainer: SvgContainerComponent,
-    private _elRef: ElementRef
+    override _svgContainer: SvgContainerComponent,
+    override _elRef: ElementRef
   ) {
-    this.height = 0;
-    this.width = 0;
-  }
-
-  /**
-   * Creates or updates the ellipse object within the container
-   */
-  ngAfterViewChecked(): void {
-    // Check if container is created and no ellipse object is created
-    if (this._svgContainer.getContainer() && !this._ellipse) {
-      this.createEllipse();
-    }
-  }
-
-  /**
-   * Does all required pre-requisites before destroying the component.
-   */
-  ngOnDestroy(): void {
-    this._ellipse?.remove();
-  }
-
-  /**
-   * Is called when changes are made to the ellipse object.
-   * @param changes - Angular Simple Changes object containing all the changes.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this._ellipse) {
-      this.updateEllipse();
-
-      // If we have already created the object, update it.
-      const { classesToAdd, classesToRemove } = getClassesToAddAndRemove(changes);
-      if (!!classesToAdd || !!classesToRemove) {
-        // Add and remove classes
-        this.addRemoveClasses(classesToAdd, classesToRemove);
-      }
-    }
+    super(_svgContainer, _elRef);
   }
 
   /**
    * Update ellipse object within the SVG container.
    */
-  private updateEllipse(): void {
-    this._ellipse.size(this.width, this.height) // Update the width and height
-      .fill(this.color) // Update the color
-      .attr('cx', +this.x + +this.width / 2) // Set x position
-      .attr('cy', +this.y + +this.height / 2); // Set y position
-
-    // Let's set element in a correct position
-    this.setCorrectPosition();
+  override updateShape(): void {
+    this.setAttributes();
   }
 
   /**
    * Create ellipse object within the SVG container.
    */
-  private createEllipse(): void {
+  override createShape(): void {
     const container = this._svgContainer.getContainer();
-    const ellipse = this._ellipse;
-
     if (!container) {
       return;
     }
-    this._ellipse = container
+
+    this._shape = container
       .ellipse(this.width, this.height) // Set height and width of the ellipse
-      .fill(this.color) // Set fill color
-      .attr('cx', +this.x + +this.width / 2) // Set x position
-      .attr('cy', +this.y + +this.height / 2) // Set y position
       .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
       .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
       .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
       .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
 
+    this.setAttributes();
+    this.onInitialize.emit(this._shape);
+  }
+
+  private setAttributes(): void {
+    this._shape.size(this.width, this.height) // Update the width and height
+      .fill(this.color) // Update the color
+      .attr('cx', this.x + this.width / 2) // Set x position
+      .attr('cy', this.y + this.height / 2); // Set y position
+
     // Let's set element in a correct position
     this.setCorrectPosition();
-
-    // Add classes to the ellipse
     this.addRemoveClasses(this.classes);
-
-    // Let's output the ellipse element
-    this.onInitialize.emit(this._ellipse);
-  }
-
-  /**
-   * Sets correct position for the element.
-   */
-  private setCorrectPosition() {
-    const container = this._svgContainer.getContainer();
-    const ellipse = this._ellipse;
-    if (!container || !ellipse) {
-      return;
-    }
-    // Find position of an element within the parent container
-    const position = Array.prototype.slice.call(this._elRef.nativeElement.parentElement.children).indexOf(this._elRef.nativeElement);
-
-    // Let's update and insert element in a correct position.
-    if (container.get(position) && ellipse.position() !== position) {
-      ellipse.insertBefore(container.get(position));
-    }
-  }
-
-  /**
-   * Adds classes to the ellipse object.
-   * @param classesToAdd - List of classes, which needs to be added.
-   * @param classesToRemove - List of classes, which needs to be removed.
-   */
-  private addRemoveClasses(classesToAdd: string[], classesToRemove: string[] = []): void {
-    // First let's remove classes, that are not necessary anymore
-    for (const classToRemove of classesToRemove) {
-      this._ellipse?.removeClass(classToRemove);
-    }
-
-    // Now let's add new classes
-    for (const classToAdd of classesToAdd) {
-      this._ellipse?.addClass(classToAdd);
-    }
   }
 }

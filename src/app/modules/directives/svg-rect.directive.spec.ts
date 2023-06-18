@@ -260,7 +260,7 @@ describe('SVG Rect Directive', () => {
         fixture.detectChanges();
 
         const rect = html.querySelector('rect');
-        expect(rect.getAttribute('class')).toEqual(' red-fill');
+        expect(rect.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

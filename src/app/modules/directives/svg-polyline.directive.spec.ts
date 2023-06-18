@@ -247,7 +247,7 @@ describe('SVG Polyline Directive', () => {
         fixture.detectChanges();
 
         const polyline = html.querySelector('polyline');
-        expect(polyline.getAttribute('class')).toEqual(' red-fill');
+        expect(polyline.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

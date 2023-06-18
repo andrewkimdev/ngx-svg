@@ -247,7 +247,7 @@ describe('SVG Polygon Directive', () => {
         fixture.detectChanges();
 
         const polygon = html.querySelector('polygon');
-        expect(polygon.getAttribute('class')).toEqual(' red-fill');
+        expect(polygon.getAttribute('class')).toEqual('red-fill');
       });
     });
   });

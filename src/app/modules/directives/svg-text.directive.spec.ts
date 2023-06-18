@@ -253,7 +253,7 @@ describe('SVG Text Directive', () => {
         fixture.detectChanges();
 
         const text = html.querySelector('text');
-        expect(text.getAttribute('class')).toEqual(' red-fill');
+        expect(text.getAttribute('class')).toEqual('red-fill');
       });
     });
   });
