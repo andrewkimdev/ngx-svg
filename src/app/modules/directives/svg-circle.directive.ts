@@ -11,7 +11,7 @@ import { Circle } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 @Directive({
   selector: 'svg-circle'
@@ -26,8 +26,8 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
    */
   @Input() diameter: number; // Diameter of the circle
   @Input() color = '#000'; // Color of the circle background
-  @Input() x = 0; // Starting point on x axis.
-  @Input() y = 0; // Starting point on y axis.
+  @Input() x = 0; // Starting point on x-axis.
+  @Input() y = 0; // Starting point on y-axis.
   @Input() classes: string[] = []; // List of CSS classes which needs to be added.
 
   /**
@@ -71,7 +71,7 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
 
   /**
    * Is called when changes are made to the circle object.
-   * @param changes - Angular Simple Changes object containing all of the changes.
+   * @param changes - Angular Simple Changes object containing all the changes.
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this._circle) {
