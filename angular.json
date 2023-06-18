@@ -40,7 +40,6 @@
       }
     }
   },
-  "defaultProject": "ngx-svg",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",
