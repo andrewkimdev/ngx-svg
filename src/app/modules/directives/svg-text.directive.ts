@@ -12,17 +12,16 @@ import { Text } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from '../components';
-import { SvgShapeBaseDirective } from './svg-shape-base.directive';
+import { SvgBaseDirective } from './svg-base.directive';
 
 @Directive({
   selector: 'svg-text'
 })
-export class SvgTextDirective extends SvgShapeBaseDirective {
+export class SvgTextDirective extends SvgBaseDirective {
   /**
    * Globally used variables within the directive.
    */
   protected _shape: Text | null = null;
-  protected shapeType = 'text';
 
   /**
    * Import variables for the text directive.
