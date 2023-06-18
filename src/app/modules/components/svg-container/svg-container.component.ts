@@ -1,7 +1,16 @@
 /**
  * Import Angular libraries.
  */
-import { Component, AfterViewInit, Input, Output, EventEmitter, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef
+} from '@angular/core';
 
 /**
  * Import third-party libraries.
@@ -20,16 +29,16 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
   public pointXCoordinate: number;
   public pointYCoordinate: number;
   public mouseInContainer = false;
-  private _svg: Container;
-  private _grid: Rect;
-  private _pattern: Pattern;
+  private _svg: Container | null = null;
+  private _grid: Rect | null = null;
+  private _pattern: Pattern | null = null;
   private _triggerCoordinateChange = false;
-  private _singleClickHappened: boolean;
+  private _singleClickHappened = false;
 
   /**
    * Input variables used within the component.
    */
-  @Input() public containerId: string; // Container id which will be used to create the container.
+  @Input() public containerId = ''; // Container id which will be used to create the container.
   @Input() public height = 200; // Height of the container.
   @Input() public showGrid = false; // Indicator if grid image should be shown in the background of svg container.
   @Input() public grid: {
@@ -55,7 +64,7 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
   @Output() public mouseOverEvent: EventEmitter<MouseEvent> = new EventEmitter(); // Event handler when mouse is moved over the container.
   @Output() public mouseOutEvent: EventEmitter<MouseEvent> = new EventEmitter(); // Event handler when the mouse exits the container.
   @Output() public mouseMoveEvent: EventEmitter<{ x: number, y: number }> = new EventEmitter();
-    // Event handler when the mouse is being moved on the container.
+  // Event handler when the mouse is being moved on the container.
   @Output() public onInitialize: EventEmitter<Container> = new EventEmitter();
 
   /**
@@ -64,7 +73,10 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
    */
   constructor(
     private cdRef: ChangeDetectorRef
-  ) { }
+  ) {
+    this.pointXCoordinate = 0;
+    this.pointYCoordinate = 0;
+  }
 
   /**
    * Does all required pre-requisites when input variables changes.
@@ -74,28 +86,28 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
     // Check if svg container is defined
     if (this._svg) {
       // Check if viewbox has changed
-      if (changes.viewBox && changes.viewBox.currentValue !== changes.viewBox.previousValue) {
+      if (changes['viewBox'] && changes['viewBox'].currentValue !== changes['viewBox'].previousValue) {
         // Let's update viewbox value
-        this.viewBox = changes.viewBox.currentValue;
+        this.viewBox = changes['viewBox'].currentValue;
 
         // Let's update viewbox
         this.updateViewbox();
       }
 
       // Let's update the height
-      if (changes.height && changes.height.currentValue !== changes.height.previousValue) {
+      if (changes['height'] && changes['height'].currentValue !== changes['height'].previousValue) {
         // Update height
-        this.height = changes.height.currentValue;
+        this.height = changes['height'].currentValue;
 
         // Update height of the svg container
         this._svg.size('100%', this.height);
       }
 
       // Let's update pattern in case grid was changed
-      if (changes.showGrid || changes.grid) {
+      if (changes['showGrid'] || changes['grid']) {
         // Update values
-        this.grid = changes.grid ? changes.grid.currentValue : this.grid;
-        this.showGrid = changes.showGrid ? changes.showGrid.currentValue : this.showGrid;
+        this.grid = changes['grid'] ? changes['grid'].currentValue : this.grid;
+        this.showGrid = changes['showGrid'] ? changes['showGrid'].currentValue : this.showGrid;
 
         // Let's update the pattern
         this.setGridPattern();
@@ -103,12 +115,12 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
 
       // Check if any other input variables have changed
       if (
-        changes.hoverable && changes.hoverable.currentValue !== changes.hoverable.previousValue ||
-        changes.pointSize && changes.pointSize.currentValue !== changes.pointSize.previousValue
+        changes['hoverable'] && changes['hoverable'].currentValue !== changes['hoverable'].previousValue ||
+        changes['pointSize'] && changes['pointSize'].currentValue !== changes['pointSize'].previousValue
       ) {
         // Update values
-        this.hoverable = changes.hoverable ? changes.hoverable.currentValue : this.hoverable;
-        this.pointSize = changes.pointSize ? changes.pointSize.currentValue : this.pointSize;
+        this.hoverable = changes['hoverable'] ? changes['hoverable'].currentValue : this.hoverable;
+        this.pointSize = changes['pointSize'] ? changes['pointSize'].currentValue : this.pointSize;
 
         // Let's refresh the view
         this.cdRef.detectChanges();
@@ -127,7 +139,7 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
    * Retrieves container instance.
    * @returns SVG Container instance.
    */
-  getContainer(): Container {
+  getContainer(): Container | null {
     return this._svg;
   }
 
@@ -214,6 +226,7 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
    */
   private updateViewbox(): void {
     // Check if we are still using viewbox
+    if (!this._svg) return;
     if (this.viewBox.length === 4) {
       // Set viewbox
       this._svg.viewbox(this.viewBox[0], this.viewBox[1], this.viewBox[2], this.viewBox[3]);
@@ -231,12 +244,12 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
     // Assign viewbox only if it's defined
     if (this.viewBox && this.viewBox.length === 4) {
       this._svg = SVG()
-        .addTo(`#${id}`)
+        .addTo(`#${ id }`)
         .size('100%', this.height)
         .viewbox(this.viewBox[0], this.viewBox[1], this.viewBox[2], this.viewBox[3]);
     } else {
       this._svg = SVG()
-        .addTo(`#${id}`)
+        .addTo(`#${ id }`)
         .size('100%', this.height);
     }
 
@@ -253,6 +266,9 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
    * Does all required pre-requisites and initializes or updates grid pattern.
    */
   private setGridPattern(): void {
+    if (!this._svg) {
+      return;
+    }
     // Let's remove old pattern if we have created one
     if (this._pattern) {
       this._pattern.remove();
