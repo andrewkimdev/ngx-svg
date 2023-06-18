@@ -11,7 +11,7 @@ import { Polygon, PointArrayAlias } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 @Directive({
   selector: 'svg-polygon'
@@ -20,12 +20,12 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
   /**
    * Globally used variables within the directive.
    */
-  private _polygon: Polygon;
+  private _polygon: Polygon | null;
 
   /**
    * Import variables for the polygon directive.
    */
-  @Input() points: PointArrayAlias; // Array with points in format [[x, y], [x1, y1], [x2, y2], ..., [xn, yn]].
+  @Input() points: PointArrayAlias | null; // Array with points in format [[x, y], [x1, y1], [x2, y2], ..., [xn, yn]].
   @Input() borderSize: number; // Size of the border.
   @Input() borderColor = '#000'; // Color of the polygon.
   @Input() fill = '#000'; // Color of the polygon body.
@@ -34,10 +34,10 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
   /**
    * Output variables for the polygon directive.
    */
-  @Output() clickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() doubleClickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOverEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOutEvent: EventEmitter<MouseEvent> = new EventEmitter();
+  @Output() clickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() doubleClickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOverEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOutEvent: EventEmitter<Event> = new EventEmitter();
   @Output() onInitialize: EventEmitter<Polygon> = new EventEmitter();
 
   /**
@@ -48,7 +48,11 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
   constructor(
     private _svgContainer: SvgContainerComponent,
     private _elRef: ElementRef
-  ) { }
+  ) {
+    this._polygon = null;
+    this.points = null;
+    this.borderSize = 0;
+  }
 
   /**
    * Creates or updates the polygon object within the container.
@@ -64,7 +68,7 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
    * Does all required pre-requisites before destroying the component.
    */
   ngOnDestroy(): void {
-    this._polygon.remove();
+    this._polygon?.remove();
   }
 
   /**
@@ -73,19 +77,20 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this._polygon) {
+      const { classes } = changes;
       // If we have already created the object, update it.
       this.updatePolygon();
 
       // Check if classes were changed
-      if (changes.classes && changes.classes.currentValue !== changes.classes.previousValue) {
+      if (classes && classes.currentValue !== classes.previousValue) {
         // Get classes that needs to be removed
-        const classesToRemove = changes.classes.previousValue.filter((previousClass: string) =>
-          !changes.classes.currentValue.some((currentClass: string) => currentClass === previousClass)
+        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
+          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
         );
 
         // Get classes that needs to be added
-        const classesToAdd = changes.classes.currentValue.filter((currentClass: string) =>
-          !changes.classes.previousValue.some((previousClass: string) => currentClass === previousClass)
+        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
+          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
         );
 
         // Add and remove classes
@@ -98,8 +103,13 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
    * Update polygon object within the SVG container.
    */
   private updatePolygon(): void {
-    this._polygon
-      .plot(this.points) // Update the polygon object
+    const polygon = this._polygon;
+    const points = this.points;
+    if (!polygon || !points) {
+      return;
+    }
+    polygon
+      .plot(points) // Update the polygon object
       .fill(this.fill) // Fill color of the polygon
       .stroke({ color: this.borderColor, width: this.borderSize }); // Set the border for the polygon
 
@@ -111,17 +121,22 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
    * Create polygon object within the SVG container.
    */
   private createPolygon(): void {
-    this._polygon = this._svgContainer.getContainer()
-      .polygon(this.points) // Create the polygon object
+    const container = this._svgContainer.getContainer();
+    const points = this.points;
+    if (!container || !points) {
+      return;
+    }
+    this._polygon = container
+      .polygon(points) // Create the polygon object
       .fill(this.fill) // Fill color of the polygon
       .stroke({ color: this.borderColor, width: this.borderSize }) // Set the border for the polygon
-      .on('click', (evt: MouseEvent) => this.clickEvent.emit(evt)) // Assign click event
-      .on('dblclick', (evt: MouseEvent) => this.doubleClickEvent.emit(evt)) // Assign double click event
-      .on('mouseover', (evt: MouseEvent) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
-      .on('mouseout', (evt: MouseEvent) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
+      .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
+      .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
+      .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
+      .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
 
     // Let's set element in a correct position
-    this.setCorrectPosition();  
+    this.setCorrectPosition();
 
     // Add classes to the polygon
     this.addRemoveClasses(this.classes);
@@ -134,12 +149,17 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
    * Sets correct position for the element.
    */
   private setCorrectPosition() {
+    const container = this._svgContainer.getContainer();
+    const polygon = this._polygon;
+    if (!container || !polygon) {
+      return;
+    }
     // Find position of an element within the parent container
     const position = Array.prototype.slice.call(this._elRef.nativeElement.parentElement.children).indexOf(this._elRef.nativeElement);
 
     // Let's update and insert element in a correct position.
-    if (this._svgContainer.getContainer().get(position) && this._polygon.position() !== position) {
-      this._polygon.insertBefore(this._svgContainer.getContainer().get(position));
+    if (container.get(position) && polygon.position() !== position) {
+      polygon.insertBefore(container.get(position));
     }
   }
 
@@ -151,14 +171,11 @@ export class SvgPolygonDirective implements AfterViewChecked, OnChanges, OnDestr
   private addRemoveClasses(classesToAdd: string[], classesToRemove: string[] = []): void {
     // First let's remove classes, that are not necessary anymore
     for (const classToRemove of classesToRemove) {
-      this._polygon
-        .removeClass(classToRemove);
+      this._polygon?.removeClass(classToRemove);
     }
-
     // Now let's add new classes
     for (const classToAdd of classesToAdd) {
-      this._polygon
-        .addClass(classToAdd);
+      this._polygon?.addClass(classToAdd);
     }
   }
 }
