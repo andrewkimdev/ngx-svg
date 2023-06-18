@@ -1,7 +1,17 @@
 /**
  * Import Angular libraries.
  */
-import { Directive, Input, Output, EventEmitter, OnDestroy, AfterViewChecked, OnChanges, SimpleChanges, ElementRef } from '@angular/core';
+import {
+  Directive,
+  Input,
+  Output,
+  EventEmitter,
+  OnDestroy,
+  AfterViewChecked,
+  OnChanges,
+  SimpleChanges,
+  ElementRef
+} from '@angular/core';
 
 /**
  * Import third-party libraries.
@@ -11,7 +21,7 @@ import { Path } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 @Directive({
   selector: 'svg-path'
@@ -20,7 +30,7 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
   /**
    * Globally used variables within the directive.
    */
-  private _path: Path;
+  private _path: Path | null;
 
   /**
    * Import variables for the path directive.
@@ -36,10 +46,10 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
   /**
    * Output variables for the path directive.
    */
-  @Output() clickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() doubleClickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOverEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOutEvent: EventEmitter<MouseEvent> = new EventEmitter();
+  @Output() clickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() doubleClickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOverEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOutEvent: EventEmitter<Event> = new EventEmitter();
   @Output() onInitialize: EventEmitter<Path> = new EventEmitter();
 
   /**
@@ -50,7 +60,9 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
   constructor(
     private _svgContainer: SvgContainerComponent,
     private _elRef: ElementRef
-  ) { }
+  ) {
+    this._path = null;
+  }
 
   /**
    * Creates the path object within the container.
@@ -66,7 +78,7 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
    * Does all required pre-requisites before destroying the component.
    */
   ngOnDestroy(): void {
-    this._path.remove();
+    this._path?.remove();
   }
 
   /**
@@ -77,17 +89,18 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
     if (this._path) {
       // If we have already created the object, update it.
       this.updatePath();
+      const { classes } = changes;
 
       // Check if classes were changed
-      if (changes.classes && changes.classes.currentValue !== changes.classes.previousValue) {
+      if (classes && classes.currentValue !== classes.previousValue) {
         // Get classes that needs to be removed
-        const classesToRemove = changes.classes.previousValue.filter((previousClass: string) =>
-          !changes.classes.currentValue.some((currentClass: string) => currentClass === previousClass)
+        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
+          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
         );
 
         // Get classes that needs to be added
-        const classesToAdd = changes.classes.currentValue.filter((currentClass: string) =>
-          !changes.classes.previousValue.some((previousClass: string) => currentClass === previousClass)
+        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
+          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
         );
 
         // Add and remove classes
@@ -100,8 +113,11 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
    * Update path object within the SVG container.
    */
   private updatePath(): void {
-    this._path
-      .plot(this.path) // Update the path for the element
+    const path = this._path;
+    if (!path) {
+      return;
+    }
+    path.plot(this.path) // Update the path for the element
       .stroke({ color: this.borderColor, width: this.borderSize }) // Update the border for the
       .fill(this.fill || 'rgba(0, 0, 0, 0)') // Update fill of the path
       .move(this.x, this.y); // Update the location of the path
@@ -114,15 +130,19 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
    * Create path object within the SVG container.
    */
   private createPath(): void {
-    this._path = this._svgContainer.getContainer()
+    const container = this._svgContainer.getContainer();
+    if (!container) {
+      return;
+    }
+    this._path = container
       .path(this.path) // Set the path for the element
       .stroke({ color: this.borderColor, width: this.borderSize }) // Set the border for the path
       .fill(this.fill || 'rgba(0, 0, 0, 0)') // Set fill of the path
       .move(this.x, this.y) // Set the location of the path
-      .on('click', (evt: MouseEvent) => this.clickEvent.emit(evt)) // Assign click event
-      .on('dblclick', (evt: MouseEvent) => this.doubleClickEvent.emit(evt)) // Assign double click event
-      .on('mouseover', (evt: MouseEvent) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
-      .on('mouseout', (evt: MouseEvent) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
+      .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
+      .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
+      .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
+      .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
 
     // Let's set element in a correct position
     this.setCorrectPosition();
@@ -138,12 +158,17 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
    * Sets correct position for the element.
    */
   private setCorrectPosition() {
+    const container = this._svgContainer.getContainer();
+    const path = this._path;
+    if (!container || !path) {
+      return;
+    }
     // Find position of an element within the parent container
     const position = Array.prototype.slice.call(this._elRef.nativeElement.parentElement.children).indexOf(this._elRef.nativeElement);
 
     // Let's update and insert element in a correct position.
-    if (this._svgContainer.getContainer().get(position) && this._path.position() !== position) {
-      this._path.insertBefore(this._svgContainer.getContainer().get(position));
+    if (container.get(position) && path.position() !== position) {
+      path.insertBefore(container.get(position));
     }
   }
 
@@ -156,13 +181,13 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
     // First let's remove classes, that are not necessary anymore
     for (const classToRemove of classesToRemove) {
       this._path
-        .removeClass(classToRemove);
+        ?.removeClass(classToRemove);
     }
 
     // Now let's add new classes
     for (const classToAdd of classesToAdd) {
       this._path
-        .addClass(classToAdd);
+        ?.addClass(classToAdd);
     }
   }
 }
