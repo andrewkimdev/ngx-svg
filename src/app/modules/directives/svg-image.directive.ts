@@ -12,6 +12,7 @@ import { Image } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from 'app/modules/components';
+import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
 
 @Directive({
   selector: 'svg-image'
@@ -76,7 +77,7 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
    */
   ngOnChanges(changes: SimpleChanges): void {
     // Make sure we check it only when image is initialized
-    const { x, y, width, height, classes, imageUrl } = changes;
+    const { x, y, width, height, imageUrl } = changes;
     if (this._image) {
       // Update image also in case image url has changed
       if (imageUrl && imageUrl.currentValue !== imageUrl.previousValue) {
@@ -93,17 +94,8 @@ export class SvgImageDirective implements AfterViewChecked, OnDestroy, OnChanges
       }
 
       // Check if classes were changed
-      if (classes && classes.currentValue !== classes.previousValue) {
-        // Get classes that needs to be removed
-        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
-          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
-        );
-
-        // Get classes that needs to be added
-        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
-          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
-        );
-
+      const { classesToAdd, classesToRemove } = getClassesToAddAndRemove(changes);
+      if (!!classesToAdd || !!classesToRemove) {
         // Add and remove classes
         this.addRemoveClasses(classesToAdd, classesToRemove);
       }

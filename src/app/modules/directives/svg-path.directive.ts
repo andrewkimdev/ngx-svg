@@ -22,6 +22,7 @@ import { Path } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from 'app/modules/components';
+import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
 
 @Directive({
   selector: 'svg-path'
@@ -38,8 +39,8 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
   @Input() path = ''; // Path which needs to be displayed.
   @Input() borderColor = '#000'; // Color of the border.
   @Input() borderSize = 2; // Size of the border.
-  @Input() x = 0; // Starting point on x axis.
-  @Input() y = 0; // Starting point on y axis.
+  @Input() x = 0; // Starting point on x-axis.
+  @Input() y = 0; // Starting point on y-axis.
   @Input() fill = ''; // Fill color of the path.
   @Input() classes: string[] = []; // List of CSS classes which needs to be added.
 
@@ -83,26 +84,16 @@ export class SvgPathDirective implements AfterViewChecked, OnChanges, OnDestroy 
 
   /**
    * Is called when changes are made to the path object.
-   * @param changes - Angular Simple Changes object containing all of the changes.
+   * @param changes - Angular Simple Changes object containing all the changes.
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this._path) {
       // If we have already created the object, update it.
       this.updatePath();
-      const { classes } = changes;
 
       // Check if classes were changed
-      if (classes && classes.currentValue !== classes.previousValue) {
-        // Get classes that needs to be removed
-        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
-          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
-        );
-
-        // Get classes that needs to be added
-        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
-          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
-        );
-
+      const { classesToAdd, classesToRemove } = getClassesToAddAndRemove(changes);
+      if (!!classesToAdd || !!classesToRemove) {
         // Add and remove classes
         this.addRemoveClasses(classesToAdd, classesToRemove);
       }

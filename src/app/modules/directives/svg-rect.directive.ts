@@ -22,6 +22,7 @@ import { Rect } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from 'app/modules/components';
+import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
 
 @Directive({
   selector: 'svg-rect'
@@ -94,22 +95,12 @@ export class SvgRectDirective implements AfterViewChecked, OnChanges, OnDestroy 
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this._rect) {
-      const { classes } = changes;
       // If we have already created the object, update it.
       this.updateRect();
 
       // Check if classes were changed
-      if (classes && classes.currentValue !== classes.previousValue) {
-        // Get classes that needs to be removed
-        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
-          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
-        );
-
-        // Get classes that needs to be added
-        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
-          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
-        );
-
+      const { classesToAdd, classesToRemove } = getClassesToAddAndRemove(changes);
+      if (!!classesToAdd || !!classesToRemove) {
         // Add and remove classes
         this.addRemoveClasses(classesToAdd, classesToRemove);
       }

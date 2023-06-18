@@ -12,6 +12,7 @@ import { Line } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from 'app/modules/components';
+import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
 
 @Directive({
   selector: 'svg-line'
@@ -27,10 +28,10 @@ export class SvgLineDirective implements AfterViewChecked, OnChanges, OnDestroy 
    */
   @Input() borderSize: number; // Size of the border.
   @Input() borderColor = '#000'; // Color of the line.
-  @Input() x0 = 0; // Starting point on x axis.
-  @Input() y0 = 0; // Starting point on y axis.
-  @Input() x1 = 1; // Ending point on x axis.
-  @Input() y1 = 1; // Ending point on y axis.
+  @Input() x0 = 0; // Starting point on x-axis.
+  @Input() y0 = 0; // Starting point on y-axis.
+  @Input() x1 = 1; // Ending point on x-axis.
+  @Input() y1 = 1; // Ending point on y-axis.
   @Input() classes: string[] = []; // List of CSS classes which needs to be added.
   /**
    * Output variables for the line directive.
@@ -73,26 +74,16 @@ export class SvgLineDirective implements AfterViewChecked, OnChanges, OnDestroy 
 
   /**
    * Is called when changes are made to the line object.
-   * @param changes - Angular Simple Changes object containing all of the changes.
+   * @param changes - Angular Simple Changes object containing all the changes.
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this._line) {
       // If we have already created the object, update it.
       this.updateLine();
 
-      const { classes } = changes;
       // Check if classes were changed
-      if (classes && classes.currentValue !== classes.previousValue) {
-        // Get classes that needs to be removed
-        const classesToRemove = classes.previousValue.filter((previousClass: string) =>
-          !classes.currentValue.some((currentClass: string) => currentClass === previousClass)
-        );
-
-        // Get classes that needs to be added
-        const classesToAdd = classes.currentValue.filter((currentClass: string) =>
-          !classes.previousValue.some((previousClass: string) => currentClass === previousClass)
-        );
-
+      const { classesToAdd, classesToRemove } = getClassesToAddAndRemove(changes);
+      if (!!classesToAdd || !!classesToRemove) {
         // Add and remove classes
         this.addRemoveClasses(classesToAdd, classesToRemove);
       }

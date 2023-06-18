@@ -12,6 +12,7 @@ import { Circle } from '@svgdotjs/svg.js';
  * Import custom components.
  */
 import { SvgContainerComponent } from 'app/modules/components';
+import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
 
 @Directive({
   selector: 'svg-circle'
@@ -77,18 +78,10 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
     if (this._circle) {
       // If we have already created the object, update it.
       this.updateCircle();
+
       // Check if classes were changed
-      if (changes['classes'] && changes['classes'].currentValue !== changes['classes'].previousValue) {
-        // Get classes that needs to be removed
-        const classesToRemove = changes['classes'].previousValue.filter((previousClass: string) =>
-          !changes['classes'].currentValue.some((currentClass: string) => currentClass === previousClass)
-        );
-
-        // Get classes that needs to be added
-        const classesToAdd = changes['classes'].currentValue.filter((currentClass: string) =>
-          !changes['classes'].previousValue.some((previousClass: string) => currentClass === previousClass)
-        );
-
+      const { classesToAdd, classesToRemove } = getClassesToAddAndRemove(changes);
+      if (!!classesToAdd || !!classesToRemove) {
         // Add and remove classes
         this.addRemoveClasses(classesToAdd, classesToRemove);
       }
@@ -116,26 +109,25 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
     const container = this._svgContainer.getContainer();
     if (!container) {
       return;
-    } else {
-      this._circle = container
-        .circle(this.diameter) // Create the circle with diameter (twice the radius)
-        .fill(this.color) // Set the fill color
-        .attr('cx', +this.x + +this.diameter / 2) // Set x position
-        .attr('cy', +this.y + +this.diameter / 2) // Set y position
-        .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
-        .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
-        .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
-        .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
-
-      // Let's set element in a correct position
-      this.setCorrectPosition();
-
-      // Add classes to the circle
-      this.addRemoveClasses(this.classes);
-
-      // Let's output the circle element
-      this.onInitialize.emit(this._circle);
     }
+    this._circle = container
+      .circle(this.diameter) // Create the circle with diameter (twice the radius)
+      .fill(this.color) // Set the fill color
+      .attr('cx', +this.x + +this.diameter / 2) // Set x position
+      .attr('cy', +this.y + +this.diameter / 2) // Set y position
+      .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
+      .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
+      .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
+      .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
+
+    // Let's set element in a correct position
+    this.setCorrectPosition();
+
+    // Add classes to the circle
+    this.addRemoveClasses(this.classes);
+
+    // Let's output the circle element
+    this.onInitialize.emit(this._circle);
   }
 
 
@@ -164,17 +156,13 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
    */
   private addRemoveClasses(classesToAdd: string[], classesToRemove: string[] = []): void {
     // First let's remove classes, that are not necessary anymore
-    const circle = this._circle;
-    if (!circle) {
-      return;
-    }
     for (const classToRemove of classesToRemove) {
-      circle.removeClass(classToRemove);
+      this._circle?.removeClass(classToRemove);
     }
 
     // Now let's add new classes
     for (const classToAdd of classesToAdd) {
-      circle.addClass(classToAdd);
+      this._circle?.addClass(classToAdd);
     }
   }
 }
