@@ -11,8 +11,8 @@ import { Circle } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgBaseDirective } from 'app/modules/directives/svg-base.directive';
-import { SvgContainerComponent } from 'app/modules/components';
+import { SvgBaseDirective } from './svg-base.directive';
+import { SvgContainerComponent } from '../components';
 
 @Directive({
   selector: 'svg-circle'

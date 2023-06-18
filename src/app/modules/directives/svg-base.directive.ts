@@ -2,8 +2,8 @@ import { AfterViewChecked, ElementRef, EventEmitter, Input, OnChanges, OnDestroy
 
 import { Shape } from '@svgdotjs/svg.js';
 
-import { SvgContainerComponent } from 'app/modules/components';
-import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
+import { SvgContainerComponent } from '../components';
+import { getClassesToAddAndRemove } from '../util/handle-class-changes.util';
 
 export class SvgBaseDirective implements AfterViewChecked, OnChanges, OnDestroy {
   @Input() protected color = '#000'; // Color of the shape background

@@ -11,8 +11,8 @@ import { Text } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from 'app/modules/components';
-import { SvgShapeBaseDirective } from 'app/modules/directives/svg-shape-base.directive';
+import { SvgContainerComponent } from '../components';
+import { SvgShapeBaseDirective } from './svg-shape-base.directive';
 
 @Directive({
   selector: 'svg-text'

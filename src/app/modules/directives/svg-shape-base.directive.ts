@@ -1,6 +1,6 @@
 import { ElementRef } from '@angular/core';
 import { Element as SvgElement } from '@svgdotjs/svg.js';
-import { SvgContainerComponent } from 'app/modules/components';
+import { SvgContainerComponent } from '../components';
 
 import { SvgBaseDirective } from './svg-base.directive';
 

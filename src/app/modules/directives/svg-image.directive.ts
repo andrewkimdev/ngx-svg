@@ -11,9 +11,9 @@ import { Image } from '@svgdotjs/svg.js';
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from 'app/modules/components';
-import { SvgBaseDirective } from 'app/modules/directives/svg-base.directive';
-import { getClassesToAddAndRemove } from 'app/modules/util/handle-class-changes.util';
+import { SvgContainerComponent } from '../components';
+import { SvgBaseDirective } from './svg-base.directive';
+import { getClassesToAddAndRemove } from '../util/handle-class-changes.util';
 
 @Directive({
   selector: 'svg-image'
