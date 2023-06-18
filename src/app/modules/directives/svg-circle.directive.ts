@@ -20,8 +20,7 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
   /**
    * Globally used variables within the directive.
    */
-  private _circle: Circle;
-
+  private _circle: Circle | null = null;
   /**
    * Import variables for the circle directive.
    */
@@ -34,10 +33,10 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
   /**
    * Output variables for the circle directive.
    */
-  @Output() clickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() doubleClickEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOverEvent: EventEmitter<MouseEvent> = new EventEmitter();
-  @Output() mouseOutEvent: EventEmitter<MouseEvent> = new EventEmitter();
+  @Output() clickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() doubleClickEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOverEvent: EventEmitter<Event> = new EventEmitter();
+  @Output() mouseOutEvent: EventEmitter<Event> = new EventEmitter();
   @Output() onInitialize: EventEmitter<Circle> = new EventEmitter();
 
   /**
@@ -48,7 +47,9 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
   constructor(
     private _svgContainer: SvgContainerComponent,
     private _elRef: ElementRef
-  ) { }
+  ) {
+    this.diameter = 0;
+  }
 
   /**
    * Creates the circle object within the container.
@@ -65,7 +66,7 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
    * Does all required pre-requisites before destroying the component.
    */
   ngOnDestroy(): void {
-    this._circle.remove();
+    this._circle?.remove();
   }
 
   /**
@@ -76,17 +77,16 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
     if (this._circle) {
       // If we have already created the object, update it.
       this.updateCircle();
-
       // Check if classes were changed
-      if (changes.classes && changes.classes.currentValue !== changes.classes.previousValue) {
+      if (changes['classes'] && changes['classes'].currentValue !== changes['classes'].previousValue) {
         // Get classes that needs to be removed
-        const classesToRemove = changes.classes.previousValue.filter((previousClass: string) =>
-          !changes.classes.currentValue.some((currentClass: string) => currentClass === previousClass)
+        const classesToRemove = changes['classes'].previousValue.filter((previousClass: string) =>
+          !changes['classes'].currentValue.some((currentClass: string) => currentClass === previousClass)
         );
 
         // Get classes that needs to be added
-        const classesToAdd = changes.classes.currentValue.filter((currentClass: string) =>
-          !changes.classes.previousValue.some((previousClass: string) => currentClass === previousClass)
+        const classesToAdd = changes['classes'].currentValue.filter((currentClass: string) =>
+          !changes['classes'].previousValue.some((previousClass: string) => currentClass === previousClass)
         );
 
         // Add and remove classes
@@ -100,7 +100,7 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
    */
   private updateCircle(): void {
     this._circle
-      .size(this.diameter) // Set the diameter (twice the radius)
+      ?.size(this.diameter) // Set the diameter (twice the radius)
       .fill(this.color) // Set the fill color
       .attr('cx', +this.x + +this.diameter / 2) // Set x position
       .attr('cy', +this.y + +this.diameter / 2); // Set y position
@@ -113,36 +113,47 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
    * Create circle object within the SVG container.
    */
   private createCircle(): void {
-    this._circle = this._svgContainer.getContainer()
-      .circle(this.diameter) // Create the circle with diameter (twice the radius)
-      .fill(this.color) // Set the fill color
-      .attr('cx', +this.x + +this.diameter / 2) // Set x position
-      .attr('cy', +this.y + +this.diameter / 2) // Set y position
-      .on('click', (evt: MouseEvent) => this.clickEvent.emit(evt)) // Assign click event
-      .on('dblclick', (evt: MouseEvent) => this.doubleClickEvent.emit(evt)) // Assign double click event
-      .on('mouseover', (evt: MouseEvent) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
-      .on('mouseout', (evt: MouseEvent) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
+    const container = this._svgContainer.getContainer();
+    if (!container) {
+      return;
+    } else {
+      this._circle = container
+        .circle(this.diameter) // Create the circle with diameter (twice the radius)
+        .fill(this.color) // Set the fill color
+        .attr('cx', +this.x + +this.diameter / 2) // Set x position
+        .attr('cy', +this.y + +this.diameter / 2) // Set y position
+        .on('click', (evt: Event) => this.clickEvent.emit(evt)) // Assign click event
+        .on('dblclick', (evt: Event) => this.doubleClickEvent.emit(evt)) // Assign double click event
+        .on('mouseover', (evt: Event) => this.mouseOverEvent.emit(evt)) // Assign mouse over event
+        .on('mouseout', (evt: Event) => this.mouseOutEvent.emit(evt)); // Assign mouse out event
 
-    // Let's set element in a correct position
-    this.setCorrectPosition();
+      // Let's set element in a correct position
+      this.setCorrectPosition();
 
-    // Add classes to the circle
-    this.addRemoveClasses(this.classes);
+      // Add classes to the circle
+      this.addRemoveClasses(this.classes);
 
-    // Let's output the circle element
-    this.onInitialize.emit(this._circle);
+      // Let's output the circle element
+      this.onInitialize.emit(this._circle);
+    }
   }
+
 
   /**
    * Sets correct position for the element.
    */
   private setCorrectPosition() {
+    const container = this._svgContainer.getContainer();
+    const circle = this._circle;
+    if (!container || !circle) {
+      return;
+    }
     // Find position of an element within the parent container
     const position = Array.prototype.slice.call(this._elRef.nativeElement.parentElement.children).indexOf(this._elRef.nativeElement);
 
     // Let's update and insert element in a correct position.
-    if (this._svgContainer.getContainer().get(position) && this._circle.position() !== position) {
-      this._circle.insertBefore(this._svgContainer.getContainer().get(position));
+    if (container.get(position) && circle.position() !== position) {
+      circle.insertBefore(container.get(position));
     }
   }
 
@@ -153,15 +164,17 @@ export class SvgCircleDirective implements AfterViewChecked, OnChanges, OnDestro
    */
   private addRemoveClasses(classesToAdd: string[], classesToRemove: string[] = []): void {
     // First let's remove classes, that are not necessary anymore
+    const circle = this._circle;
+    if (!circle) {
+      return;
+    }
     for (const classToRemove of classesToRemove) {
-      this._circle
-        .removeClass(classToRemove);
+      circle.removeClass(classToRemove);
     }
 
     // Now let's add new classes
     for (const classToAdd of classesToAdd) {
-      this._circle
-        .addClass(classToAdd);
+      circle.addClass(classToAdd);
     }
   }
 }

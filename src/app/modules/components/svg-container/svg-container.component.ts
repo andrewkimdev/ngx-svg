@@ -226,7 +226,9 @@ export class SvgContainerComponent implements AfterViewInit, OnChanges {
    */
   private updateViewbox(): void {
     // Check if we are still using viewbox
-    if (!this._svg) return;
+    if (!this._svg) {
+      return;
+    }
     if (this.viewBox.length === 4) {
       // Set viewbox
       this._svg.viewbox(this.viewBox[0], this.viewBox[1], this.viewBox[2], this.viewBox[3]);
