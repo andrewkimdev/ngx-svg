@@ -76,12 +76,10 @@ export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestr
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this._ellipse) {
-      // If we have already created the object, update it.
       this.updateEllipse();
+
+      // If we have already created the object, update it.
       const { classes } = changes;
-      if (!classes) {
-        return;
-      }
 
       // Check if classes were changed
       if (classes && classes.currentValue !== classes.previousValue) {
@@ -105,11 +103,7 @@ export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestr
    * Update ellipse object within the SVG container.
    */
   private updateEllipse(): void {
-    const ellipse = this._ellipse;
-    if (!ellipse) {
-      return;
-    }
-    ellipse.size(this.width, this.height) // Update the width and height
+    this._ellipse.size(this.width, this.height) // Update the width and height
       .fill(this.color) // Update the color
       .attr('cx', +this.x + +this.width / 2) // Set x position
       .attr('cy', +this.y + +this.height / 2); // Set y position
@@ -123,10 +117,12 @@ export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestr
    */
   private createEllipse(): void {
     const container = this._svgContainer.getContainer();
+    const ellipse = this._ellipse;
+
     if (!container) {
       return;
     }
-    container
+    this._ellipse = container
       .ellipse(this.width, this.height) // Set height and width of the ellipse
       .fill(this.color) // Set fill color
       .attr('cx', +this.x + +this.width / 2) // Set x position
@@ -142,13 +138,8 @@ export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestr
     // Add classes to the ellipse
     this.addRemoveClasses(this.classes);
 
-    const ellipse = this._ellipse;
-    if (!ellipse) {
-      return;
-    }
-
     // Let's output the ellipse element
-    this.onInitialize.emit(ellipse);
+    this.onInitialize.emit(this._ellipse);
   }
 
   /**
@@ -175,18 +166,14 @@ export class SvgEllipseDirective implements AfterViewChecked, OnChanges, OnDestr
    * @param classesToRemove - List of classes, which needs to be removed.
    */
   private addRemoveClasses(classesToAdd: string[], classesToRemove: string[] = []): void {
-    const ellipse = this._ellipse;
-    if (!ellipse) {
-      return;
-    }
     // First let's remove classes, that are not necessary anymore
     for (const classToRemove of classesToRemove) {
-      ellipse.removeClass(classToRemove);
+      this._ellipse?.removeClass(classToRemove);
     }
 
     // Now let's add new classes
     for (const classToAdd of classesToAdd) {
-      ellipse.addClass(classToAdd);
+      this._ellipse?.addClass(classToAdd);
     }
   }
 }
