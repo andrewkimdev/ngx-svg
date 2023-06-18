@@ -7,7 +7,7 @@ import { TestBed, ComponentFixture, ComponentFixtureAutoDetect, waitForAsync } f
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 /**
  * Import custom directives.
@@ -165,7 +165,7 @@ describe('SVG Ellipse Directive', () => {
 
       expect(app.eventCalled).toHaveBeenCalledTimes(0);
 
-      // Get ellipse and double click on it
+      // Get ellipse and double-click on it
       const ellipse = html.querySelector('ellipse');
       ellipse.dispatchEvent(new MouseEvent('dblclick'));
       fixture.detectChanges();

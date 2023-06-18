@@ -7,7 +7,7 @@ import { TestBed, ComponentFixture, ComponentFixtureAutoDetect, waitForAsync } f
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 /**
  * Import custom directives.
@@ -167,7 +167,7 @@ describe('SVG Line Directive', () => {
 
       expect(app.eventCalled).toHaveBeenCalledTimes(0);
 
-      // Get line and double click on it
+      // Get line and double-click on it
       const line = html.querySelector('line');
       line.dispatchEvent(new MouseEvent('dblclick'));
       fixture.detectChanges();

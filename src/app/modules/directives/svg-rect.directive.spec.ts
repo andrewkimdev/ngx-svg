@@ -7,7 +7,7 @@ import { TestBed, ComponentFixture, ComponentFixtureAutoDetect, waitForAsync } f
 /**
  * Import custom components.
  */
-import { SvgContainerComponent } from '../components/svg-container/svg-container.component';
+import { SvgContainerComponent } from 'app/modules/components';
 
 /**
  * Import custom directives.
@@ -170,7 +170,7 @@ describe('SVG Rect Directive', () => {
 
       expect(app.eventCalled).toHaveBeenCalledTimes(0);
 
-      // Get rect and double click on it
+      // Get rect and double-click on it
       const rect = html.querySelector('rect');
       rect.dispatchEvent(new MouseEvent('dblclick'));
       fixture.detectChanges();
