@@ -1,10 +1,11 @@
-import { AfterViewChecked, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { AfterViewChecked, Directive, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 
 import { Shape } from '@svgdotjs/svg.js';
 
 import { SvgContainerComponent } from '../components';
 import { getClassesToAddAndRemove } from '../util/handle-class-changes.util';
 
+@Directive()
 export class SvgBaseDirective implements AfterViewChecked, OnChanges, OnDestroy {
   @Input() protected color = '#000'; // Color of the shape background
   @Input() protected classes: string[] = []; // List of CSS classes which needs to be added.

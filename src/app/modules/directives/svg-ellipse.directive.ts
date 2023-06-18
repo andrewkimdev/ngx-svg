@@ -71,6 +71,9 @@ export class SvgEllipseDirective extends SvgBaseDirective {
   }
 
   private setAttributes(): void {
+    if (!this._shape) {
+      return;
+    }
     this._shape.size(this.width, this.height) // Update the width and height
       .fill(this.color) // Update the color
       .attr('cx', this.x + this.width / 2) // Set x position

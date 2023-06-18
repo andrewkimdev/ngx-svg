@@ -22,7 +22,11 @@ export abstract class SvgShapeBaseDirective extends SvgBaseDirective {
     if (!container) {
       return;
     }
+
     this._shape = container[this.shapeType]();
+    if (!this._shape) {
+      return;
+    }
     this.setAttributes();
 
     this._shape
