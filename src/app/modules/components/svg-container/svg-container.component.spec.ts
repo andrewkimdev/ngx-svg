@@ -376,7 +376,7 @@ describe('SVG Container Component', () => {
       expect(container.attr().height).toEqual(200);
       expect(container.attr().viewBox).toEqual('10 10 500 600');
     });
-    
+
     it('Should call onInitialize event emitter and return created svg element', () => {
       spyOn(app.onInitialize, 'emit');
       app.containerId = 'test-id';
@@ -385,7 +385,7 @@ describe('SVG Container Component', () => {
       fixture.detectChanges();
 
       const container = app.getContainer();
-      
+
       expect(app.onInitialize.emit).toHaveBeenCalledTimes(1);
       expect(app.onInitialize.emit).toHaveBeenCalledWith(container);
     });
@@ -602,9 +602,9 @@ describe('SVG Container Component', () => {
       app.adjustMouseMovePosition(new MouseEvent('mousemove'));
 
       // Let's check if point x and y coordinates have been set
-      // They shouldn't be
-      expect(app.pointXCoordinate).toBeUndefined();
-      expect(app.pointYCoordinate).toBeUndefined();
+      // They should have been initialized to 0.
+      expect(app.pointXCoordinate).toEqual(0);
+      expect(app.pointYCoordinate).toEqual(0);
 
       // It should call mouseMoveEvent with event variables (_triggerCoordinateChange should be set to false)
       expect(app.mouseMoveEvent.emit).toHaveBeenCalledTimes(1);
